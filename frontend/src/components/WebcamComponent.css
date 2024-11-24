@@ -1,0 +1,22 @@
+/* src/components/WebcamComponent.css */
+
+#container {
+    position: relative;
+    display: inline-block;
+  }
+  
+  #webcam {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+  }
+  
+  #outputCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2; /* Draw keypoints above the video */
+    pointer-events: none; /* Make canvas non-interactive */
+  }
+  

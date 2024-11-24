@@ -1,0 +1,37 @@
+/* src/App.css */
+
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  padding: 20px;
+}
+
+/* Style to make the video and canvas overlap */
+#container {
+  position: relative;
+  display: inline-block;
+}
+
+#webcam {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+#outputCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2; /* Draw keypoints above the video */
+  pointer-events: none; /* Make canvas non-interactive */
+}
+
+#output {
+  position: relative;
+  top: 500px;
+  width: 640px;
+  background-color: yellow;
+  color: black;
+  padding: 10px;
+}

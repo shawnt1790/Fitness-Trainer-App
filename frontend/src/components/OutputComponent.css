@@ -1,0 +1,11 @@
+/* src/components/OutputComponent.css */
+
+#output {
+    position: relative;
+    top: 500px;
+    width: 640px;
+    background-color: yellow;
+    color: black;
+    padding: 10px;
+  }
+  
