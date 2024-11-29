@@ -1,8 +1,7 @@
 // src/components/WebcamComponent.js
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Box, Paper, Typography} from '@mui/material';
-import './WebcamComponent.css'; // We'll create this CSS file next
+import './WebcamComponent.css'; // Ensure this file exists with necessary styles
 
 function WebcamComponent() {
   const videoRef = useRef(null);
@@ -10,6 +9,8 @@ function WebcamComponent() {
   const [currentKeypoints, setCurrentKeypoints] = useState([]);
   const [frameBatch, setFrameBatch] = useState([]);
   const BATCH_SIZE = 10;
+
+  const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
 
   useEffect(() => {
     startWebcamAndProcess();
@@ -61,7 +62,7 @@ function WebcamComponent() {
     }
   };
 
-  const captureFrameFromVideo = video => {
+  const captureFrameFromVideo = (video) => {
     const tempCanvas = document.createElement('canvas');
     const tempContext = tempCanvas.getContext('2d');
 
@@ -72,9 +73,9 @@ function WebcamComponent() {
     return tempCanvas.toDataURL('image/jpeg');
   };
 
-  const processFrameBatch = async batch => {
+  const processFrameBatch = async (batch) => {
     try {
-      const response = await fetch('http://localhost:5000/process_frame', {
+      const response = await fetch(`${backendUrl}/process_frame`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ images: batch }),
@@ -86,12 +87,10 @@ function WebcamComponent() {
 
       const data = await response.json();
 
-      console.log('Received data from backend', data);
+      console.log('Received data from backend:', data);
 
       if (data.keypoints) {
-        // data.keypoints.forEach(keypoint => {
-          updateKeypoints(data.keypoints);
-        // });
+        updateKeypoints(data.keypoints); // Pass the entire array
       }
 
       if (data.predictions && data.predictions[0]) {
@@ -107,20 +106,19 @@ function WebcamComponent() {
     }
   };
 
-  const updateKeypoints = keypoints => {
+  const updateKeypoints = (keypoints) => {
     console.log('Processing keypoints:', keypoints);
     const canvas = canvasRef.current;
     const context = canvas.getContext('2d');
 
+    // Create a copy of currentKeypoints to avoid direct state mutation
     let updatedKeypoints = [...currentKeypoints];
 
     // Initialize currentKeypoints if empty
     if (updatedKeypoints.length === 0) {
-      const initialKeypoints = [];
       for (let i = 0; i < keypoints.length; i += 3) {
         updatedKeypoints.push({ x: 0, y: 0, confidence: keypoints[i + 2] });
       }
-      // setCurrentKeypoints(initialKeypoints);
     }
 
     for (let i = 0; i < keypoints.length; i += 3) {
@@ -128,10 +126,12 @@ function WebcamComponent() {
       const x = keypoints[i + 1];
       const confidence = keypoints[i + 2];
 
-      if (confidence > 0.5) {
+      if (confidence > 0.5) { // Confidence threshold
         if (updatedKeypoints[i / 3].confidence === 0) {
+          // Draw new keypoint
           drawSingleKeypoint(context, x * canvas.width, y * canvas.height);
         } else {
+          // Move existing keypoint
           moveSingleKeypoint(context, updatedKeypoints[i / 3], x * canvas.width, y * canvas.height);
         }
 
@@ -139,13 +139,14 @@ function WebcamComponent() {
         updatedKeypoints[i / 3] = { x, y, confidence };
       } else {
         if (updatedKeypoints[i / 3].confidence > 0) {
+          // Clear keypoint
           clearSingleKeypoint(context, updatedKeypoints[i / 3].x * canvas.width, updatedKeypoints[i / 3].y * canvas.height);
           updatedKeypoints[i / 3].confidence = 0;
         }
       }
     }
 
-    // Update the state
+    // Update the state once after all keypoints have been processed
     setCurrentKeypoints(updatedKeypoints);
   };
 
@@ -169,6 +170,7 @@ function WebcamComponent() {
     <div id="container">
       <video id="webcam" ref={videoRef} autoPlay playsInline width="640" height="480"></video>
       <canvas id="outputCanvas" ref={canvasRef} width="640" height="480"></canvas>
+      <div id="output"></div> {/* Ensure this div exists for predictions */}
     </div>
   );
 }
